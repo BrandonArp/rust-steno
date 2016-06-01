@@ -1,0 +1,14 @@
+# An appender named "stdout" that writes to stdout
+[appender.devnull]
+kind = "file"
+path = "/dev/null"
+pattern = "%m"
+
+[appender.stdout]
+kind = "console"
+pattern = "%m"
+
+# Set the default logging level to "warn" and attach the "stdout" appender to the root
+[root]
+level = "info"
+appenders = ["stdout"]
