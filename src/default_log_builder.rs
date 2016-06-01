@@ -28,8 +28,8 @@ pub struct DefaultLogBuilder<'a> {
 
 #[derive(Serialize)]
 struct LogEvent<'a> {
-    data: HashMap<&'a str, Value>,
-    context: HashMap<&'a str, Value>,
+    data: &'a HashMap<&'a str, Value>,
+    context: &'a HashMap<&'a str, Value>,
     time: String,
     level: String,
     id: &'a str,
@@ -63,7 +63,7 @@ impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
         self
     }
 
-    fn log(mut self) {
+    fn log(&mut self) {
         let now = time::now_utc();
         let mut serialized = HashMap::new();
         for (k, v) in self.data.iter() {
@@ -72,8 +72,8 @@ impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
         let event = LogEvent {
             id: &format!("{}", uuid::Uuid::new_v4().hyphenated()),
             time: format!("{}", now.rfc3339()),
-            data: serialized,
-            context: self.context,
+            data: &serialized,
+            context: &self.context,
             level: format!("{}", match self.level {
                 LogLevel::Trace => "unknown",
                 LogLevel::Debug => "debug",
@@ -88,7 +88,7 @@ impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
 }
 
 impl <'a> DefaultLogBuilder<'a> {
-    pub fn new(target: &'a str, level: &LogLevel) -> &mut DefaultLogBuilder<'a> {
+    pub fn new(target: &'a str, level: &LogLevel) -> DefaultLogBuilder<'a> {
         DefaultLogBuilder {
             target: target,
             level: *level,

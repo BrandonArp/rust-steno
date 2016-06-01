@@ -12,8 +12,8 @@ use std::io::{Error, ErrorKind, Write};
 
 #[test]
 fn speedy() {
-    //let iterations = 1_000_000;
-    let iterations = 1;
+    let iterations = 1_000_000;
+//    let iterations = 1;
     let nanos_per_second = 1_000_000_000;
     std::fs::remove_file("test.log").ok();
     //fastlog::LogBuilder::new().build().unwrap().init().unwrap();
@@ -24,17 +24,12 @@ fn speedy() {
     let ref error = Error::new(ErrorKind::Other, "oh no!");
 
     for _ in 0..iterations {
-//        let mut lb = DefaultLogBuilder::new("test::logger", &log::LogLevel::Info);
-        {
-            let mut lb = DefaultLogBuilder::new("test::logger", &log::LogLevel::Info);
-            //        lb.add_context("requestId", uuid1);
-            //        lb.add_data("userId", uuid2);
-            lb.add_context("requestId", uuid1);
-            lb.add_data("userId", uuid2)
-            .set_message("test message")
-            .set_error(error)
-            .log();
-        }
+        DefaultLogBuilder::new("test::logger", &log::LogLevel::Info)
+          .add_context("requestId", uuid1)
+          .add_data("userId", uuid2)
+          .set_message("test message")
+          .set_error(error)
+          .log();
     }
     let stop = PreciseTime::now();
     let duration = start.to(stop);

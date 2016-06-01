@@ -9,5 +9,5 @@ pub trait LogBuilder<'a> {
     fn set_error(&mut self, error: &'a Error) -> &mut Self;
     fn add_data<T>(&mut self, key: &'a str, value: &'a T) -> &mut Self where T: Serialize;
     fn add_context<T>(&mut self, key: &'a str, value: &'a T) -> &mut Self where T: Serialize;
-    fn log(self) -> ();
+    fn log(&mut self) -> ();
 }
