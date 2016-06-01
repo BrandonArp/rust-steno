@@ -21,7 +21,8 @@ pub struct DefaultLogBuilder<'a> {
     level: LogLevel,
     name: Option<Value>,
     error: Option<&'a Error>,
-    data: HashMap<&'a str, Value>,
+//    data: HashMap<&'a str, Value>,
+    data: HashMap<&'a str, Box<Fn() -> Value + 'a>>,
     context: HashMap<&'a str, Value>,
 }
 
@@ -42,7 +43,8 @@ impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
     }
 
     fn set_message(&mut self, message: &'a str) -> &mut DefaultLogBuilder<'a> {
-        self.data.insert("message", serde_json::to_value(&message.to_string()));
+//        self.data.insert("message", serde_json::to_value(&message.to_string()));
+        self.data.insert("message", Box::new( move || serde_json::to_value(message)));
         self
     }
 
@@ -52,7 +54,7 @@ impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
     }
 
     fn add_data<T>(&mut self, key: &'a str, value: &'a T) -> &mut DefaultLogBuilder<'a> where T: Serialize {
-        self.data.insert(key, serde_json::to_value(value));
+        self.data.insert(key, Box::new( move || serde_json::to_value(value)));
         self
     }
 
@@ -63,10 +65,14 @@ impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
 
     fn log(mut self) {
         let now = time::now_utc();
+        let mut serialized = HashMap::new();
+        for (k, v) in self.data.iter() {
+            serialized.insert(*k, v());
+        }
         let event = LogEvent {
-            id: &uuid::Uuid::new_v4().to_hyphenated_string(),
+            id: &format!("{}", uuid::Uuid::new_v4().hyphenated()),
             time: format!("{}", now.rfc3339()),
-            data: self.data,
+            data: serialized,
             context: self.context,
             level: format!("{}", match self.level {
                 LogLevel::Trace => "unknown",
@@ -82,7 +88,7 @@ impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
 }
 
 impl <'a> DefaultLogBuilder<'a> {
-    pub fn new(target: &'a str, level: &LogLevel) -> DefaultLogBuilder<'a> {
+    pub fn new(target: &'a str, level: &LogLevel) -> &mut DefaultLogBuilder<'a> {
         DefaultLogBuilder {
             target: target,
             level: *level,
