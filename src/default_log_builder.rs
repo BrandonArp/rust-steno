@@ -4,9 +4,10 @@ extern crate serde_json;
 extern crate time;
 extern crate uuid;
 
+use std;
 use log::LogLevel;
 use std::borrow::Borrow;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::error::Error;
 use std::fmt::Display;
 use serde::ser::Serialize;
@@ -22,14 +23,14 @@ pub struct DefaultLogBuilder<'a> {
     name: Option<Value>,
     error: Option<&'a Error>,
 //    data: HashMap<&'a str, Value>,
-    data: HashMap<&'a str, Box<Fn() -> Value + 'a>>,
-    context: HashMap<&'a str, Value>,
+    data: BTreeMap<&'a str, Box<Fn() -> Value + 'a>>,
+    context: BTreeMap<&'a str, Box<Fn() -> Value + 'a>>,
 }
 
 #[derive(Serialize)]
 struct LogEvent<'a> {
-    data: &'a HashMap<&'a str, Value>,
-    context: &'a HashMap<&'a str, Value>,
+    data: &'a BTreeMap<&'a str, Value>,
+    context: &'a BTreeMap<&'a str, Value>,
     time: String,
     level: String,
     id: &'a str,
@@ -59,31 +60,40 @@ impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
     }
 
     fn add_context<T>(&mut self, key: &'a str, value: &'a T) -> &mut DefaultLogBuilder<'a> where T: Serialize {
-        self.context.insert(key, serde_json::to_value(value));
+        self.context.insert(key, Box::new( move || serde_json::to_value(value)));
         self
     }
 
     fn log(&mut self) {
-        let now = time::now_utc();
-        let mut serialized = HashMap::new();
-        for (k, v) in self.data.iter() {
-            serialized.insert(*k, v());
+        if log_enabled!(target: self.target, self.level) {
+            let now = time::now_utc();
+            let mut serializedData = BTreeMap::new();
+            for (k, v) in self.data.iter() {
+                serializedData.insert(*k, v());
+            }
+            let mut serializedContext = BTreeMap::new();
+            for (k,v) in self.context.iter() {
+                serializedContext.insert(*k, v());
+            }
+
+            let event = LogEvent {
+                id: &format!("{}", uuid::Uuid::new_v4().hyphenated()),
+                time: format!("{}", now.rfc3339()),
+                data: &serializedData,
+                context: &serializedContext,
+                level: format!("{}", match self.level {
+                    LogLevel::Trace => "unknown",
+                    LogLevel::Debug => "debug",
+                    LogLevel::Info => "info",
+                    LogLevel::Warn => "warn",
+                    LogLevel::Error => "crit",
+                }),
+                version: "0"
+            };
+
+            let serialized = serde_json::to_string(&event).unwrap();
+            log!(target: self.target, self.level, "{}", serialized);
         }
-        let event = LogEvent {
-            id: &format!("{}", uuid::Uuid::new_v4().hyphenated()),
-            time: format!("{}", now.rfc3339()),
-            data: &serialized,
-            context: &self.context,
-            level: format!("{}", match self.level {
-                LogLevel::Trace => "unknown",
-                LogLevel::Debug => "debug",
-                LogLevel::Info => "info",
-                LogLevel::Warn => "warn",
-                LogLevel::Error => "crit",
-            }),
-            version: "0"
-        };
-        log!(target: self.target, self.level, "{}", serde_json::to_string(&event).unwrap());
     }
 }
 
@@ -94,8 +104,8 @@ impl <'a> DefaultLogBuilder<'a> {
             level: *level,
             name: None,
             error: None,
-            data: HashMap::new(),
-            context: HashMap::new(),
+            data: BTreeMap::new(),
+            context: BTreeMap::new(),
         }
     }
 }

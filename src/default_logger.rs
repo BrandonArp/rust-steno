@@ -13,7 +13,7 @@ pub struct DefaultLogger<'a> {
 
 impl <'a> Logger<'a> for DefaultLogger<'a> {
     fn info(&self) -> DefaultLogBuilder<'a>  {
-        self.new_for_level(LogLevel::Info);
+        self.new_for_level(&LogLevel::Info)
     }
 }
 
@@ -24,11 +24,7 @@ impl<'a> DefaultLogger<'a> {
         }
     }
 
-    fn new_for_level(&self, level: LogLevel) -> Box<LogBuilder<'a>> {
-        if log_enabled!(level) {
-            Box::new(DefaultLogBuilder::new(self.target));
-        } else {
-            Box::new(NoopLogBuilder::new());
-        }
+    fn new_for_level(&self, level: &LogLevel) -> DefaultLogBuilder<'a> {
+        DefaultLogBuilder::new(self.target, level)
     }
 }

@@ -33,6 +33,6 @@ impl <'a> LogBuilder<'a> for NoopLogBuilder {
 
 impl NoopLogBuilder {
     pub fn new() -> NoopLogBuilder {
-        NoopLogBuilder { };
+        NoopLogBuilder { }
     }
 }

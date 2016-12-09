@@ -16,3 +16,7 @@ root:
   level: info
   appenders:
     - stdout
+
+loggers:
+  test::logger:
+    level: warn

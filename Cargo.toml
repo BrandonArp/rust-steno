@@ -5,12 +5,12 @@ authors = ["Brandon Arp <barp@groupon.com>"]
 
 [dev-dependencies]
 fastlog = { version = "*" }
-log4rs = { version = "*", features = ["yaml"] }
+log4rs = { version = "*" }
 
 [dependencies]
 log = "*"
 serde = "*"
 serde_json = "*"
-serde_macros = "*"
+serde_derive = "*"
 time = "*"
 uuid = { version = "*", features = ["serde", "v4"] }
