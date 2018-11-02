@@ -15,14 +15,14 @@ use std::io::{Error, ErrorKind, Write};
 #[test]
 fn speedy() {
 //    let iterations = 1_000_000;
-    let iterations = 5_000_000;
+    let iterations = 50_000_000;
     let nanos_per_second = 1_000_000_000;
     std::fs::remove_file("test.log").ok();
 //    fastlog::LogBuilder::new().build().unwrap().init().unwrap();
     log4rs::init_file("tests/logger.yaml", Default::default()).unwrap();
     let start = PreciseTime::now();
-    let ref uuid1 = format!("{}", uuid::Uuid::new_v4().hyphenated());
-    let ref uuid2 = format!("{}", uuid::Uuid::new_v4().hyphenated());
+    let ref uuid1 = format!("{}", uuid::Uuid::new_v4().to_hyphenated());
+    let ref uuid2 = format!("{}", uuid::Uuid::new_v4().to_hyphenated());
     let ref error = Error::new(ErrorKind::Other, "oh no!");
     let ref logger = DefaultLogger::new("test::logger");
 

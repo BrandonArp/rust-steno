@@ -5,7 +5,7 @@ extern crate time;
 extern crate uuid;
 
 use std;
-use log::LogLevel;
+use log::Level;
 use std::borrow::Borrow;
 use std::collections::BTreeMap;
 use std::error::Error;
@@ -19,7 +19,7 @@ use steno_serialize::*;
 
 pub struct DefaultLogBuilder<'a> {
     target: &'a str,
-    level: LogLevel,
+    level: Level,
     name: Option<Value>,
     error: Option<&'a Error>,
 //    data: HashMap<&'a str, Value>,
@@ -39,13 +39,13 @@ struct LogEvent<'a> {
 
 impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
     fn set_event(&mut self, event: &'a str) -> &mut DefaultLogBuilder<'a> {
-        self.name = Some(serde_json::to_value(&event.to_string()));
+        self.name = Some(serde_json::to_value(&event.to_string()).unwrap());
         self
     }
 
     fn set_message(&mut self, message: &'a str) -> &mut DefaultLogBuilder<'a> {
 //        self.data.insert("message", serde_json::to_value(&message.to_string()));
-        self.data.insert("message", Box::new( move || serde_json::to_value(message)));
+        self.data.insert("message", Box::new( move || serde_json::to_value(message).unwrap()));
         self
     }
 
@@ -55,38 +55,38 @@ impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
     }
 
     fn add_data<T>(&mut self, key: &'a str, value: &'a T) -> &mut DefaultLogBuilder<'a> where T: Serialize {
-        self.data.insert(key, Box::new( move || serde_json::to_value(value)));
+        self.data.insert(key, Box::new( move || serde_json::to_value(value).unwrap()));
         self
     }
 
     fn add_context<T>(&mut self, key: &'a str, value: &'a T) -> &mut DefaultLogBuilder<'a> where T: Serialize {
-        self.context.insert(key, Box::new( move || serde_json::to_value(value)));
+        self.context.insert(key, Box::new( move || serde_json::to_value(value).unwrap()));
         self
     }
 
     fn log(&mut self) {
         if log_enabled!(target: self.target, self.level) {
             let now = time::now_utc();
-            let mut serializedData = BTreeMap::new();
+            let mut serialized_data = BTreeMap::new();
             for (k, v) in self.data.iter() {
-                serializedData.insert(*k, v());
+                serialized_data.insert(*k, v());
             }
-            let mut serializedContext = BTreeMap::new();
+            let mut serialized_context = BTreeMap::new();
             for (k,v) in self.context.iter() {
-                serializedContext.insert(*k, v());
+                serialized_context.insert(*k, v());
             }
 
             let event = LogEvent {
-                id: &format!("{}", uuid::Uuid::new_v4().hyphenated()),
+                id: &format!("{}", uuid::Uuid::new_v4().to_hyphenated()),
                 time: format!("{}", now.rfc3339()),
-                data: &serializedData,
-                context: &serializedContext,
+                data: &serialized_data,
+                context: &serialized_context,
                 level: format!("{}", match self.level {
-                    LogLevel::Trace => "unknown",
-                    LogLevel::Debug => "debug",
-                    LogLevel::Info => "info",
-                    LogLevel::Warn => "warn",
-                    LogLevel::Error => "crit",
+                    Level::Trace => "unknown",
+                    Level::Debug => "debug",
+                    Level::Info => "info",
+                    Level::Warn => "warn",
+                    Level::Error => "crit",
                 }),
                 version: "0"
             };
@@ -98,7 +98,7 @@ impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
 }
 
 impl <'a> DefaultLogBuilder<'a> {
-    pub fn new(target: &'a str, level: &LogLevel) -> DefaultLogBuilder<'a> {
+    pub fn new(target: &'a str, level: &Level) -> DefaultLogBuilder<'a> {
         DefaultLogBuilder {
             target: target,
             level: *level,

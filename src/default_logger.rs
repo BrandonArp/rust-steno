@@ -5,7 +5,7 @@ use log_builder::LogBuilder;
 use default_log_builder::DefaultLogBuilder;
 use noop_log_builder::NoopLogBuilder;
 
-use log::LogLevel;
+use log::Level;
 
 pub struct DefaultLogger<'a> {
     target: &'a str
@@ -13,7 +13,7 @@ pub struct DefaultLogger<'a> {
 
 impl <'a> Logger<'a> for DefaultLogger<'a> {
     fn info(&self) -> DefaultLogBuilder<'a>  {
-        self.new_for_level(&LogLevel::Info)
+        self.new_for_level(&Level::Info)
     }
 }
 
@@ -24,7 +24,7 @@ impl<'a> DefaultLogger<'a> {
         }
     }
 
-    fn new_for_level(&self, level: &LogLevel) -> DefaultLogBuilder<'a> {
+    fn new_for_level(&self, level: &Level) -> DefaultLogBuilder<'a> {
         DefaultLogBuilder::new(self.target, level)
     }
 }
