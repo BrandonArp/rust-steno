@@ -5,6 +5,7 @@ use log_builder::LogBuilder;
 use std::error::Error;
 use erased_serde::Serialize;
 
+#[derive(Default)]
 pub struct NoopLogBuilder { }
 
 impl <'a> LogBuilder<'a> for NoopLogBuilder {

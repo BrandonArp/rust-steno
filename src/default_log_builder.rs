@@ -7,14 +7,13 @@ extern crate uuid;
 use log::Level;
 use std::collections::BTreeMap;
 use std::error::Error;
-use serde_json::Value;
 
 use log_builder::*;
 
 pub struct DefaultLogBuilder<'a> {
     target: &'a str,
-    level: &'a Level,
-    name: Option<Value>,
+    level: Level,
+    name: Option<&'a str>,
     error: Option<&'a Error>,
     data: BTreeMap<&'a str, &'a erased_serde::Serialize>,
     context: BTreeMap<&'a str, &'a erased_serde::Serialize>,
@@ -25,14 +24,15 @@ struct LogEvent<'a> {
     data: &'a BTreeMap<&'a str, &'a erased_serde::Serialize>,
     context: &'a BTreeMap<&'a str, &'a erased_serde::Serialize>,
     time: String,
-    level: String,
+    level: &'a str,
     id: &'a str,
+    event: &'a str,
     version: &'a str
 }
 
 impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
     fn set_event(&mut self, event: &'a str) -> &mut LogBuilder<'a> {
-        self.name = Some(serde_json::to_value(&event.to_string()).unwrap());
+        self.name = Some(event);
         self
     }
 
@@ -64,26 +64,27 @@ impl <'a> LogBuilder<'a> for DefaultLogBuilder<'a> {
             time: format!("{}", now.rfc3339()),
             data: &self.data,
             context: &self.context,
-            level: format!("{}", match self.level {
+            event: self.name.unwrap_or("log"),
+            level: match self.level {
                 Level::Trace => "unknown",
                 Level::Debug => "debug",
                 Level::Info => "info",
                 Level::Warn => "warn",
                 Level::Error => "crit",
-            }),
+            },
             version: "0"
         };
 
         let serialized = serde_json::to_string(&event).unwrap();
-        log!(target: self.target, *self.level, "{}", serialized);
+        log!(target: self.target, self.level, "{}", serialized);
     }
 }
 
 impl <'a> DefaultLogBuilder<'a> {
-    pub fn new(target: &'a str, level: &'a Level) -> DefaultLogBuilder<'a> {
+    pub fn new(target: &'a str, level: Level) -> DefaultLogBuilder<'a> {
         DefaultLogBuilder {
             target,
-            level: level,
+            level,
             name: None,
             error: None,
             data: BTreeMap::new(),

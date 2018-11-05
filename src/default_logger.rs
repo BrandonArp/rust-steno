@@ -13,23 +13,23 @@ pub struct DefaultLogger<'a> {
 
 impl <'a> Logger<'a> for DefaultLogger<'a> {
     fn info(&self) -> Box<'a + LogBuilder<'a>>  {
-        self.parameterized_new_builder(&Level::Info)
+        self.parameterized_new_builder(Level::Info)
     }
 
     fn warn(&self) -> Box<'a + LogBuilder<'a>>  {
-        self.parameterized_new_builder(&Level::Warn)
+        self.parameterized_new_builder(Level::Warn)
     }
 
     fn error(&self) -> Box<'a + LogBuilder<'a>>  {
-        self.parameterized_new_builder(&Level::Debug)
+        self.parameterized_new_builder(Level::Debug)
     }
 
     fn debug(&self) -> Box<'a + LogBuilder<'a>>  {
-        self.parameterized_new_builder(&Level::Debug)
+        self.parameterized_new_builder(Level::Debug)
     }
 
     fn trace(&self) -> Box<'a + LogBuilder<'a>>  {
-        self.parameterized_new_builder(&Level::Debug)
+        self.parameterized_new_builder(Level::Debug)
     }
 
 }
@@ -37,11 +37,11 @@ impl <'a> Logger<'a> for DefaultLogger<'a> {
 impl<'a> DefaultLogger<'a> {
     pub fn new(target: &'a str) -> DefaultLogger<'a> {
         DefaultLogger {
-            target: target
+            target
         }
     }
 
-    fn parameterized_new_builder(&self, level: &'a Level) -> Box<'a + LogBuilder<'a>> {
+    fn parameterized_new_builder(&self, level: Level) -> Box<'a + LogBuilder<'a>> {
         if log_enabled!(target: self.target, Level::Info) {
             Box::new(DefaultLogBuilder::new(self.target, level))
         } else {
