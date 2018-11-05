@@ -4,13 +4,15 @@ version = "0.1.0"
 authors = ["Brandon Arp <barp@groupon.com>"]
 
 [dev-dependencies]
-fastlog = { version = "*" }
-log4rs = { version = "*" }
+slog = { version = "*"}
+slog-stdlog = { version = "*"}
+slog-scope = { version = "*"}
 
 [dependencies]
 log = "*"
 serde = "*"
 serde_json = "*"
 serde_derive = "*"
+erased-serde = "*"
 time = "*"
 uuid = { version = "*", features = ["serde", "v4"] }

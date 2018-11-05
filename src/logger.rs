@@ -1,6 +1,9 @@
 use log_builder::LogBuilder;
-use default_log_builder::DefaultLogBuilder;
 
 pub trait Logger<'a> {
-    fn info(&self) -> DefaultLogBuilder<'a>;
+    fn info(&self) -> Box<'a + LogBuilder<'a>>;
+    fn warn(&self) -> Box<'a + LogBuilder<'a>>;
+    fn error(&self) -> Box<'a + LogBuilder<'a>>;
+    fn debug(&self) -> Box<'a + LogBuilder<'a>>;
+    fn trace(&self) -> Box<'a + LogBuilder<'a>>;
 }

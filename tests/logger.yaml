@@ -9,14 +9,14 @@ appenders:
   # An appender named "requests" that writes to a file with a custom pattern encoder
   devnull:
     kind: file
-    path: "/dev/null"
+    path: /dev/null
 
 # Set the default logging level to "warn" and attach the "stdout" appender to the root
 root:
   level: info
   appenders:
-    - stdout
+    - devnull
 
 loggers:
   test::logger:
-    level: warn
+    level: info

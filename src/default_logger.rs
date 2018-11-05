@@ -12,9 +12,26 @@ pub struct DefaultLogger<'a> {
 }
 
 impl <'a> Logger<'a> for DefaultLogger<'a> {
-    fn info(&self) -> DefaultLogBuilder<'a>  {
-        self.new_for_level(&Level::Info)
+    fn info(&self) -> Box<'a + LogBuilder<'a>>  {
+        self.parameterized_new_builder(&Level::Info)
     }
+
+    fn warn(&self) -> Box<'a + LogBuilder<'a>>  {
+        self.parameterized_new_builder(&Level::Warn)
+    }
+
+    fn error(&self) -> Box<'a + LogBuilder<'a>>  {
+        self.parameterized_new_builder(&Level::Debug)
+    }
+
+    fn debug(&self) -> Box<'a + LogBuilder<'a>>  {
+        self.parameterized_new_builder(&Level::Debug)
+    }
+
+    fn trace(&self) -> Box<'a + LogBuilder<'a>>  {
+        self.parameterized_new_builder(&Level::Debug)
+    }
+
 }
 
 impl<'a> DefaultLogger<'a> {
@@ -24,7 +41,11 @@ impl<'a> DefaultLogger<'a> {
         }
     }
 
-    fn new_for_level(&self, level: &Level) -> DefaultLogBuilder<'a> {
-        DefaultLogBuilder::new(self.target, level)
+    fn parameterized_new_builder(&self, level: &'a Level) -> Box<'a + LogBuilder<'a>> {
+        if log_enabled!(target: self.target, Level::Info) {
+            Box::new(DefaultLogBuilder::new(self.target, level))
+        } else {
+            Box::new(NoopLogBuilder::new())
+        }
     }
 }
